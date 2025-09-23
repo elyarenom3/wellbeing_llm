@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ritual-breathing",
+    "title": "5-Minute Breathing Reset",
+    "summary": "Guided diaphragmatic breathing to lower stress markers.",
+    "tags": [
+      "stress",
+      "breathing",
+      "mindfulness"
+    ],
+    "body": "Find a comfortable seat, inhale for 4 counts, hold for 4, exhale for 6. Repeat for five cycles."
+  },
+  {
+    "id": "micro-movements",
+    "title": "Desk-Friendly Mobility Flow",
+    "summary": "Three light stretches to release tension during work sprints.",
+    "tags": [
+      "mobility",
+      "lower_back",
+      "energy"
+    ],
+    "body": "Neck rolls for 30 seconds, seated spinal twist for each side, and standing quad stretch for 45 seconds per leg."
+  },
+  {
+    "id": "gratitude-journal",
+    "title": "Evening Gratitude Prompt",
+    "summary": "Reflective journaling to reinforce positive affect before sleep.",
+    "tags": [
+      "gratitude",
+      "sleep",
+      "journaling"
+    ],
+    "body": "List three moments that brought calm or joy today, and note one intention for tomorrow."
+  }
+]
