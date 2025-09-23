@@ -1,0 +1,79 @@
+# ---- OS / Editor cruft ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+.git
+
+# ---- Python basics ----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+.venv*/
+
+# Packaging / build artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# ---- Tools & caches ----
+.cache/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.ipynb_checkpoints/
+
+# ---- Coverage ----
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+htmlcov/
+
+# ---- Logs ----
+logs/
+*.log
+uvicorn.log
+
+# ---- Environment & local config ----
+.env
+.env.*
+!.env.example
+.python-version
+
+# ---- Databases & local state ----
+*.db
+*.sqlite
+*.sqlite3
+wellbeing_logs.sqlite3
+test_logs.sqlite3
+
+# ---- Artifacts ----
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+wellbeing_backend.zip
+
+# ---- Node (future UI) ----
+node_modules/
+*.tsbuildinfo
+
+# ---- Project-specific data rules ----
+# Keep curated JSON content under version control:
+!data/
+!data/wellbeing_content.json
+# But ignore any accidental DBs in data/
+data/**/*.sqlite*
+data/**/*.db

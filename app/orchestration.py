@@ -61,7 +61,6 @@ class Orchestrator:
                 })
             plan_json = {"day": "today", "items": fallback_items}
 
-        # Parse into Plan model
         try:
             items = [PlanItem(**it) for it in plan_json["items"]][:2]
             plan = Plan(day=str(plan_json.get("day", "today")), items=items)
@@ -75,7 +74,7 @@ class Orchestrator:
                 ]
             )
 
-        # Step 4: Validate guardrails
+        # Validate guardrails
         ok, reason = validate_plan(plan)
         if not ok:
             # Minimal safe fallback
@@ -93,7 +92,7 @@ class Orchestrator:
         logging_db.save_plan(session_id, plan.model_dump(), signals.model_dump(), self.db_path)
         logging_db.log_step(session_id, "plan", input_obj={"prompt": plan_prompt}, output_obj=plan.model_dump(), db_path=self.db_path)
 
-        # Step 5: Empathetic message
+        # Empathetic message
         emo_prompt = EMPATHETIC_TEMPLATE.format(
             signals=json.dumps(signals.model_dump(), ensure_ascii=False),
             available_minutes=available_minutes,

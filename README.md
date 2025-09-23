@@ -72,7 +72,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Optional provider keys (set according to your chosen model):
+Optional provider keys:
 - `OPENAI_API_KEY` (for OpenAI‑compatible models)
 - `ANTHROPIC_API_KEY`
 - `GEMINI_API_KEY`
@@ -180,7 +180,7 @@ The test runs the full flow with the offline fallback and asserts basic invarian
 
 ## Assumptions & Trade‑offs
 
-- We optimize for reliability and clarity over flash. A small curated library + heuristics works
+- I optimized for reliability and clarity over flash. A small curated library + heuristics works
   well for a lightweight demo and avoids drift.
-- JSON output is enforced in prompt; however, we keep a robust fallback to guarantee responses.
-- We keep dependencies light and avoid heavyweight NLP pipelines.
+- JSON output is enforced in prompt; however, I kept a robust fallback to guarantee responses.
+- I kept dependencies light and avoid heavyweight NLP pipelines.
