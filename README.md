@@ -1,7 +1,7 @@
 
 # Wellbeing Planner (Python • FastAPI • Provider‑agnostic LLM)
 
-A production‑minded, <4h‑scope backend that turns multi‑turn user input + curated wellbeing
+A production‑minded, preliminary backend that turns multi‑turn user input + curated wellbeing
 content into:
 - an *empathetic conversational reply*, and
 - a *structured action plan* (1–2 items) with clear rationale.
@@ -43,7 +43,7 @@ README.md
 6. **Logging**: every step is timestamped into SQLite (`wellbeing_logs.sqlite3`).
 
 > The design intentionally keeps each step small and testable, while exhibiting the “graph” idea
-  (distinct nodes: reflection → retrieval → plan → validate → empathy). You can swap any node
+  (distinct nodes: reflection → retrieval → plan → validate → empathy). We can swap any node
   (e.g., a vector retriever, a different sentiment model) without touching others.
 
 ## Why this content approach?
@@ -55,7 +55,7 @@ without needing a heavy RAG stack. For a larger library, plug a vector DB (Chrom
 
 ## Provider‑agnostic LLM
 
-We use **LiteLLM** (`LITELLM_MODEL`) so you can point to OpenAI/Anthropic/Ollama/HuggingFace
+We use **LiteLLM** (`LITELLM_MODEL`) so we can point to OpenAI/Anthropic/Ollama/HuggingFace
 backends *without code changes*.
 
 - Example: `export LITELLM_MODEL=gpt-4o-mini` (requires `OPENAI_API_KEY`)
@@ -86,44 +86,52 @@ Optional provider keys:
 
 ### Option A — FastAPI
 
+Start the server (note the module path to **`app/main.py`**):
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Then `POST /plan` with JSON like:
+**POST /plan** expects:
+- `context.user_id` (**required**)
+- `context.free_text` (user’s message)
+- `context.preferences`: **list of strings** in `"key=value"` form (e.g., `"available_time_min=30"`)
+- `conversation`: object (e.g., `{"messages":[...]}`), not a bare array
 
-```json
-{
-  "context": {
-    "user_id": "u123",
-    "mood": "tired and a little overwhelmed",
-    "available_minutes": 12,
-    "focus_area": "stress",
-    "preferences": ["gentle", "at-desk"],
-    "constraints": ["no floor work"],
-    "timezone": "America/Toronto"
-  },
-  "conversation": {
-    "messages": [
-      { "role": "user", "content": "Slept poorly, tight lower back, anxious about deadlines." },
-      { "role": "user", "content": "I only have ~10 minutes between calls." }
-    ]
-  }
-}
+```bash
+curl -X POST http://127.0.0.1:8000/plan   -H 'Content-Type: application/json'   -d '{
+    "context": {
+      "user_id": "demo-123",
+      "free_text": "Feeling tense before a talk—30 min free at lunch.",
+      "preferences": [
+        "available_time_min=30",
+        "focus_area=stress",
+        "time_of_day=lunch"
+      ]
+    },
+    "conversation": {
+      "messages": [
+        {"role": "user", "content": "Feeling tense before a talk—30 min free at lunch."}
+      ]
+    }
+  }'
 ```
+
+> Common 422s:
+> - Missing `context.user_id` → add it.
+> - `context.preferences` must be `List[str]` (`"key=value"`), not a dict or list of objects.
+> - `conversation` must be an object (e.g., `{"messages":[...]}`), not `[]`.
 
 ### Option B — CLI
 
 ```bash
-python run_cli.py --available_minutes 12 --focus_area stress   --messages "Slept badly" "Lower back tight" "Have 10 minutes only"
+python run_cli.py   --available_minutes 12   --focus_area stress   --messages "Slept badly" "Lower back tight" "Have 10 minutes only"
 ```
 
-## Response
-
+## Response (example)
 ```json
 {
-  "session_id": "...",
-  "empathetic_message": "I hear that today has been a lot…",
+  "session_id": "e7bfea8e-1a83-45bf-bca3-e779248281cd",
+  "empathetic_message": "I hear that today has been a lot—thank you for sharing...",
   "plan": {
     "day": "today",
     "items": [
@@ -131,19 +139,23 @@ python run_cli.py --available_minutes 12 --focus_area stress   --messages "Slept
         "content_id": "ritual-breathing",
         "title": "5-Minute Breathing Reset",
         "duration_minutes": 5,
-        "why_it_helps": "Quick downshift…",
-        "instructions": "Inhale 4, hold 4, exhale 6…"
+        "why_it_helps": "Quick downshift for the nervous system; pairs well with low energy days.",
+        "instructions": "Inhale 4, hold 4, exhale 6 for five cycles."
       }
     ],
     "caution": null
   },
   "signals": {
-    "sentiment": -0.34,
-    "top_themes": ["stress", "mobility"],
-    "energy_level": "low",
-    "summary": "Sentiment -0.34. Themes: …"
+    "sentiment": 0.34,
+    "top_themes": ["stress"],
+    "energy_level": "medium",
+    "summary": "Sentiment 0.34. Themes: stress. Energy: medium."
   },
-  "candidates": [ /* ranked content */ ]
+  "candidates": [
+    { "id": "ritual-breathing", "score": 26.02, "...": "..." },
+    { "id": "gratitude-journal", "score": 22.45, "...": "..." },
+    { "id": "micro-movements", "score": 18.66, "...": "..." }
+  ]
 }
 ```
 
@@ -160,7 +172,7 @@ SQLite tables:
 - `steps(session_id, step_name, input_json, output_json, started_at, ended_at, meta)`
 - `plans(session_id, plan_json, signals_json, created_at)`
 
-You can query `steps` to debug each node’s input/output.
+We can query `steps` to debug each node’s input/output.
 
 ## Testing
 
