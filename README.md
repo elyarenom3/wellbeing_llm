@@ -1,7 +1,7 @@
 
 # Wellbeing Planner (Python • FastAPI • Provider‑agnostic LLM)
 
-A production‑minded, preliminary backend that turns multi‑turn user input + curated wellbeing
+A production‑minded, preliminary backend (with a rudimentary front-end) that turns multi‑turn user input + curated wellbeing
 content into:
 - an *empathetic conversational reply*, and
 - a *structured action plan* (1–2 items) with clear rationale.
