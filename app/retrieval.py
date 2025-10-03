@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json, math, os, re
 from collections import Counter
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 import numpy as np
 try:
     from rapidfuzz import fuzz
