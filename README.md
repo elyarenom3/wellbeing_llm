@@ -249,7 +249,7 @@ the frontend entrypoint is present.
   confidence scores, and gracefully falls back to VADER/heuristics in offline mode.
 - **Life Quality Signal (LQI-lite)**: combines sentiment slope, theme load, and inferred adherence to
   produce a 0–100 wellbeing pulse, with volatility-capped progression and a lightweight Plotly-ready chart.
-- **Evidence-backed plans**: every plan item carries a concise citation (e.g. `ritual-breathing:stress`)
-  and rationale pulled from the vector store explainers.
+- **Evidence-backed plans**: every plan item carries a concise citation with a direct link to the
+  supporting study, along with a rationale pulled from the vector store explainers.
 - **Privacy layer**: regex redaction, optional logging opt-out, encrypted storage, key rotation, and
   automatic retention cleanup when `PRIVACY_MODE=true`.

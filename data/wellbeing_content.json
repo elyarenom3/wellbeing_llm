@@ -8,7 +8,9 @@
       "breathing",
       "mindfulness"
     ],
-    "body": "Find a comfortable seat, inhale for 4 counts, hold for 4, exhale for 6. Repeat for five cycles."
+    "body": "Find a comfortable seat, inhale for 4 counts, hold for 4, exhale for 6. Repeat for five cycles.",
+    "source_title": "Slow breathing and stress regulation",
+    "source_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5709795/"
   },
   {
     "id": "micro-movements",
@@ -19,7 +21,9 @@
       "lower_back",
       "energy"
     ],
-    "body": "Neck rolls for 30 seconds, seated spinal twist for each side, and standing quad stretch for 45 seconds per leg."
+    "body": "Neck rolls for 30 seconds, seated spinal twist for each side, and standing quad stretch for 45 seconds per leg.",
+    "source_title": "Short stretching breaks reduce musculoskeletal discomfort",
+    "source_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3362980/"
   },
   {
     "id": "gratitude-journal",
@@ -30,6 +34,8 @@
       "sleep",
       "journaling"
     ],
-    "body": "List three moments that brought calm or joy today, and note one intention for tomorrow."
+    "body": "List three moments that brought calm or joy today, and note one intention for tomorrow.",
+    "source_title": "Gratitude journaling improves well-being",
+    "source_url": "https://www.apa.org/monitor/2011/11/gratitude"
   }
 ]

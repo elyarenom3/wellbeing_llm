@@ -177,6 +177,7 @@ def prepare_plan_storage(plan_obj: Dict[str, Any], signals_obj: Dict[str, Any]) 
                     "content_id": item.get("content_id"),
                     "duration_minutes": item.get("duration_minutes"),
                     "citation": item.get("evidence_citation"),
+                    "url": item.get("evidence_url"),
                 }
                 for item in plan_obj.get("items", [])
             ]

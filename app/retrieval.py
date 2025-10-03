@@ -144,8 +144,9 @@ class ContentRepository:
                 ContentExplanation(
                     content_id=item.id,
                     snippet=snippet,
-                    citation=self._citation_for(item),
+                    citation=self._citation_text(item),
                     score=snippet_score,
+                    url=item.source_url,
                 )
             )
         return explanations
@@ -171,12 +172,14 @@ class ContentRepository:
             best_score = 0.0
         return best, best_score
 
-    def _citation_for(self, item: ContentItem) -> str:
+    def _citation_text(self, item: ContentItem) -> str:
+        if item.source_title and item.source_url:
+            return f"{item.source_title}"
         primary_tag = item.tags[0] if item.tags else "general"
         return f"{item.id}:{primary_tag}"
 
-    def citation_for(self, item: ContentItem) -> str:
-        return self._citation_for(item)
+    def citation_for(self, item: ContentItem) -> tuple[str, Optional[str]]:
+        return self._citation_text(item), item.source_url
 
 
 class LocalVectorStore:

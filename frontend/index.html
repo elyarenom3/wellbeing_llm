@@ -376,13 +376,16 @@ Lower back feels tight from sitting.</textarea>
       (data.plan?.items || []).forEach(item => {
         const div = document.createElement('div');
         div.className = 'plan-item';
+        const citationHtml = item.evidence_url
+          ? `<a href="${item.evidence_url}" target="_blank" rel="noopener" style="color:var(--accent-dark);text-decoration:none;">${item.evidence_citation || 'View study'}</a>`
+          : (item.evidence_citation || '—');
         div.innerHTML = `
           <div style="font-weight:600;font-size:1.05rem;">${item.title}</div>
           <div style="margin:4px 0;">${item.why_it_helps}</div>
           <div style="color:var(--muted);font-size:0.9rem;margin-bottom:6px;">${item.instructions}</div>
           <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--muted);">
             <span>Duration: ${item.duration_minutes} min</span>
-            <span>Citation: ${item.evidence_citation || 'n/a'}</span>
+            <span>Citation: ${citationHtml}</span>
           </div>
         `;
         itemsContainer.appendChild(div);
@@ -420,7 +423,10 @@ Lower back feels tight from sitting.</textarea>
       explanations.forEach(exp => {
         const div = document.createElement('div');
         div.className = 'candidate-item';
-        div.innerHTML = `<strong>${exp.content_id}</strong> · ${exp.citation}<br/>${exp.snippet}`;
+        const citation = exp.url
+          ? `<a href="${exp.url}" target="_blank" rel="noopener" style="color:var(--accent-dark);text-decoration:none;">${exp.citation || exp.url}</a>`
+          : (exp.citation || '—');
+        div.innerHTML = `<strong>${exp.content_id}</strong> · ${citation}<br/>${exp.snippet}`;
         container.appendChild(div);
       });
       return createSection('Evidence & Citations', [container]);

@@ -26,6 +26,7 @@ def test_end_to_end():
     assert resp.life_quality.recent, "Life quality history should include recent points"
     for item in resp.plan.items:
         assert item.evidence_citation, "Each plan item should include an evidence citation"
+        assert item.evidence_url, "Each plan item should include an evidence url"
     history = logging_db.fetch_life_quality_history("test", db_path=os.path.join(os.path.dirname(__file__), "..", "test_logs.sqlite3"))
     assert history, "Life quality history should record entries"
 

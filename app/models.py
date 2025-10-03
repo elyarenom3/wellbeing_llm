@@ -36,12 +36,15 @@ class ContentItem(BaseModel):
     tags: List[str]
     body: str
     score: float = 0.0
+    source_title: Optional[str] = None
+    source_url: Optional[str] = None
 
 class ContentExplanation(BaseModel):
     content_id: str
     snippet: str
     citation: str
     score: float
+    url: Optional[str] = None
 
 class CalendarBlock(BaseModel):
     start_iso: str
@@ -56,6 +59,7 @@ class PlanItem(BaseModel):
     why_it_helps: str
     instructions: str
     evidence_citation: Optional[str] = Field(default=None, description="Short citation identifier for provenance")
+    evidence_url: Optional[str] = Field(default=None, description="Link to supporting study or source")
 
 class Plan(BaseModel):
     day: str

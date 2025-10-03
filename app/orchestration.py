@@ -100,13 +100,15 @@ class Orchestrator:
             fallback_items = []
             for dur, c in zip(durations, candidates):
                 rationale = next((exp.snippet for exp in explanations if exp.content_id == c.id), c.summary)
+                citation_text, citation_url = self.repo.citation_for(c)
                 fallback_items.append({
                     "content_id": c.id,
                     "title": c.title,
                     "duration_minutes": int(min(dur, available_minutes)),
                     "why_it_helps": f"{rationale} (themes: {', '.join(signals.top_themes)})",
                     "instructions": c.body,
-                    "evidence_citation": self.repo.citation_for(c),
+                    "evidence_citation": citation_text,
+                    "evidence_url": citation_url,
                 })
             plan_json = {"day": "today", "items": fallback_items}
 
@@ -116,6 +118,7 @@ class Orchestrator:
         except Exception:
             # Very defensive fallback
             first = candidates[0]
+            citation_text, citation_url = self.repo.citation_for(first)
             plan = Plan(
                 day="today",
                 items=[
@@ -125,7 +128,8 @@ class Orchestrator:
                         duration_minutes=min(5, available_minutes),
                         why_it_helps="Quick reset",
                         instructions=first.body,
-                        evidence_citation=self.repo.citation_for(first),
+                        evidence_citation=citation_text,
+                        evidence_url=citation_url,
                     )
                 ]
             )
@@ -138,6 +142,7 @@ class Orchestrator:
             # Minimal safe fallback
             first = candidates[0] if candidates else None
             if first:
+                citation_text, citation_url = self.repo.citation_for(first)
                 plan = Plan(
                     day="today",
                     items=[
@@ -147,7 +152,8 @@ class Orchestrator:
                             duration_minutes=min(5, available_minutes),
                             why_it_helps="Simple, safe, and time-bound. Built from curated wellbeing content.",
                             instructions=first.body,
-                            evidence_citation=self.repo.citation_for(first),
+                            evidence_citation=citation_text,
+                            evidence_url=citation_url,
                         )
                     ],
                     caution=reason
@@ -197,10 +203,13 @@ class Orchestrator:
     def _enrich_plan_with_citations(self, plan: Plan, candidates: List[ContentItem]) -> Plan:
         candidates_by_id = {c.id: c for c in candidates}
         for item in plan.items:
-            if not item.evidence_citation:
-                content_ref = candidates_by_id.get(item.content_id)
-                if content_ref:
-                    item.evidence_citation = self.repo.citation_for(content_ref)
+            content_ref = candidates_by_id.get(item.content_id)
+            if content_ref:
+                citation_text, citation_url = self.repo.citation_for(content_ref)
+                if not item.evidence_citation:
+                    item.evidence_citation = citation_text
+                if not item.evidence_url and citation_url:
+                    item.evidence_url = citation_url
         return plan
 
     def _plan_explanations(
