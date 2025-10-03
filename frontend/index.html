@@ -330,7 +330,6 @@ Lower back feels tight from sitting.</textarea>
       sections.push(createSignalsSection(data));
       sections.push(createPlanSection(data));
       sections.push(createCalendarSection(data));
-      sections.push(createExplanationsSection(data));
       sections.push(createLifeQualitySection(data));
 
       if (data.personalized_nudge) {
@@ -412,24 +411,6 @@ Lower back feels tight from sitting.</textarea>
         container.appendChild(div);
       });
       return createSection('Calendar Blocks', [container]);
-    }
-
-    function createExplanationsSection(data) {
-      const explanations = data.explanations || [];
-      if (!explanations.length) {
-        return createSection('Evidence & Citations', [document.createTextNode('No citations available.')]);
-      }
-      const container = document.createElement('div');
-      explanations.forEach(exp => {
-        const div = document.createElement('div');
-        div.className = 'candidate-item';
-        const citation = exp.url
-          ? `<a href="${exp.url}" target="_blank" rel="noopener" style="color:var(--accent-dark);text-decoration:none;">${exp.citation || exp.url}</a>`
-          : (exp.citation || '—');
-        div.innerHTML = `<strong>${exp.content_id}</strong> · ${citation}<br/>${exp.snippet}`;
-        container.appendChild(div);
-      });
-      return createSection('Evidence & Citations', [container]);
     }
 
     function createLifeQualitySection(data) {
