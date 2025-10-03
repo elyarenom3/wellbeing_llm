@@ -25,6 +25,8 @@ runs **offline** using a deterministic **RuleBasedLLM** fallback.
   life_quality.py   # LQI-lite score computation + reporting helpers
   privacy.py        # PII redaction, encryption helpers, retention utilities
   main.py           # FastAPI with /plan endpoint
+/frontend
+  index.html        # Zero-dependency SPA that talks to the FastAPI backend
 /data
   wellbeing_content.json  # Curated sample content (extendable)
 /tests
@@ -36,8 +38,8 @@ README.md
 
 **Flow**
 
-1. **Reflection**: `reflection.analyze()` computes sentiment (DistilBERT when available), themes (keyword mapping
-   + context), and an energy estimate.
+1. **Reflection**: `reflection.analyze()` computes sentiment (DistilBERT when available, VADER/heuristic fallback), themes
+   (keyword mapping + context), and an energy estimate.
 2. **Retrieval**: generates embeddings (Sentence-Transformers if available, TF‑IDF fallback) and
    performs cosine similarity search over the wellbeing library. Each recommendation ships with an
    *explainer* citing the most relevant passage.
@@ -61,8 +63,7 @@ README.md
 
 We kept a curated JSON (`data/wellbeing_content.json`) with clearly tagged micro‑interventions that are
 safe and broadly applicable. This keeps the system deterministic, explainable, and easy to extend
-without needing a heavy RAG stack. For a larger library, plug a vector DB (Chroma, FAISS) and swap
-`retrieval.py` to embed titles/summaries and search by cosine similarity.
+without needing a heavy RAG stack.
 
 ## Provider‑agnostic LLM
 
@@ -88,6 +89,8 @@ Optional provider keys:
 - `ANTHROPIC_API_KEY`
 - `GEMINI_API_KEY`
 - `LITELLM_MODEL` (e.g., `gpt-4o-mini`, `ollama/llama3.1`, `openrouter/auto`)
+- Optional quality boosts: install `sentence-transformers`, `transformers`, and `torch` to unlock
+  transformer embeddings and DistilBERT sentiment.
 
 **Environment paths**
 - `WB_DATA_PATH` — path to `wellbeing_content.json` (default: `./data/wellbeing_content.json`)
@@ -135,10 +138,6 @@ curl -X POST http://127.0.0.1:8000/plan   -H 'Content-Type: application/json'   
   }'
 ```
 
-> Common 422s:
-> - Missing `context.user_id` → add it.
-> - `context.preferences` must be `List[str]` (`"key=value"`), not a dict or list of objects.
-> - `conversation` must be an object (e.g., `{"messages":[...]}`), not `[]`.
 
 ### Option B — CLI
 
@@ -203,8 +202,12 @@ SQLite tables:
 - `sessions(id, user_id, created_at)`
 - `steps(session_id, step_name, input_json, output_json, started_at, ended_at, meta)`
 - `plans(session_id, plan_json, signals_json, created_at)`
+- `life_quality(session_id, user_id, score, payload, created_at)`
 
 We can query `steps` to debug each node’s input/output.
+
+> When `PRIVACY_MODE=true`, logged payloads are redacted/encrypted before hitting disk, and retention
+  cleanup purges stale rows automatically.
 
 ## Testing
 
@@ -212,9 +215,10 @@ We can query `steps` to debug each node’s input/output.
 pytest -q
 ```
 
-The test runs the full flow with the offline fallback and asserts basic invariants.
+The suite exercises the offline planner, verifies the generated life-quality history, and checks that
+the frontend entrypoint is present.
 
-## New Extensibility Features (Implemented)
+## New Extensibility Features
 
 - **Embedding + vector retrieval**: curates candidates via cosine similarity and surfaces cited
   explainers for transparency. Optional dependency: install `sentence-transformers` for
@@ -233,13 +237,3 @@ The test runs the full flow with the offline fallback and asserts basic invarian
   and rationale pulled from the vector store explainers.
 - **Privacy layer**: regex redaction, optional logging opt-out, encrypted storage, key rotation, and
   automatic retention cleanup when `PRIVACY_MODE=true`.
-
-> Optional packages: `sentence-transformers` and `transformers` + `torch` unlock higher-quality
-> embeddings and sentiment confidence. The system remains functional without them.
-
-## Assumptions & Trade‑offs
-
-- I optimized for reliability and clarity over flash. A small curated library + heuristics works
-  well for a lightweight demo and avoids drift.
-- JSON output is enforced in prompt; however, I kept a robust fallback to guarantee responses.
-- I kept dependencies light and avoid heavyweight NLP pipelines.
