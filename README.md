@@ -84,27 +84,43 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Optional provider keys:
-- `OPENAI_API_KEY` (for OpenAI‑compatible models)
-- `ANTHROPIC_API_KEY`
-- `GEMINI_API_KEY`
-- `LITELLM_MODEL` (e.g., `gpt-4o-mini`, `ollama/llama3.1`, `openrouter/auto`)
-- Optional quality boosts: install `sentence-transformers`, `transformers`, and `torch` to unlock
-  transformer embeddings and DistilBERT sentiment.
+### Configure `.env`
 
-**Environment paths**
-- `WB_DATA_PATH` — path to `wellbeing_content.json` (default: `./data/wellbeing_content.json`)
-- `WB_SQLITE_PATH` — path to SQLite log DB (default: `./wellbeing_logs.sqlite3`)
-- `PRIVACY_MODE` — enable privacy guardrails (`true` disables remote providers, redacts PII)
-- `PRIVACY_LOGGING_OPTOUT` — skip DB logging entirely when set to `true`
-- `WB_RETENTION_DAYS` — retention window for encrypted logs & life quality scores (default: 30)
+Add or update the following keys:
+
+```
+PRIVACY_MODE=false
+PRIVACY_LOGGING_OPTOUT=false
+WB_RETENTION_DAYS=30
+
+# OpenAI example (LiteLLM will route to this model)
+OPENAI_API_KEY=sk-...
+MODEL_PROVIDER=openai
+LITELLM_MODEL=gpt-4o-mini
+
+# Optional overrides
+# WB_DATA_PATH=./data/wellbeing_content.json
+# WB_SQLITE_PATH=./wellbeing_logs.sqlite3
+```
+
+For other providers, swap `MODEL_PROVIDER` / `LITELLM_MODEL` and add the relevant credentials.
+
+> No keys? The app still works in offline mode via the deterministic fallback—it just won’t call a live
+  LLM.
+
+Optional quality boosts: install `sentence-transformers`, `transformers`, and `torch` to enable
+transformer-grade embeddings and DistilBERT sentiment.
 
 ## Run
 
 ### Option A — FastAPI
 
-Start the server (note the module path to **`app/main.py`**):
+Start the server (note the module path to **`app/main.py`**) after loading the `.env` so the
+environment variables are available:
 ```bash
+set -a
+source .env
+set +a
 uvicorn app.main:app --reload
 ```
 
