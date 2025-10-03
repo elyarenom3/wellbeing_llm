@@ -7,13 +7,13 @@
   <style>
     :root {
       color-scheme: only light;
-      --bg: #f6f6f8;
+      --bg: #f8f5ff;
       --card: #ffffff;
-      --border: #d9d9de;
-      --accent: #3b82f6;
-      --accent-dark: #1d4ed8;
-      --text: #1f2937;
-      --muted: #6b7280;
+      --border: #dcd6f2;
+      --accent: #8d0af7;
+      --accent-dark: #6f08c5;
+      --text: #292d33;
+      --muted: #60636b;
     }
     * { box-sizing: border-box; }
     body {
@@ -27,19 +27,30 @@
     }
     header {
       padding: 24px;
-      background: linear-gradient(135deg, #2563eb, #14b8a6);
-      color: #fff;
+      background: linear-gradient(135deg, #8d0af7, #c37dff);
+      color: #ffffff;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .logo {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
     }
     header h1 {
       margin: 0;
       font-size: 1.8rem;
+      color: #ffffff;
     }
     header p {
       margin: 6px 0 0;
       max-width: 720px;
       line-height: 1.5;
       font-size: 0.95rem;
-      color: rgba(255,255,255,0.85);
+      color: rgba(255, 255, 255, 0.85);
     }
     main {
       width: min(1100px, 94%);
@@ -183,8 +194,13 @@
 </head>
 <body>
   <header>
-    <h1>Wellbeing Planner</h1>
-    <p>Enter a quick snapshot of how you&rsquo;re doing and the planner will craft an empathetic reply, evidence-backed micro-actions, and a Life Quality Signal to help you track momentum.</p>
+    <div class="header-inner">
+      <img src="/assets/syd_logo.png" alt="Wellbeing planner logo" class="logo" />
+      <div>
+        <h1>Wellbeing Planner</h1>
+        <p>Enter a quick snapshot of how you&rsquo;re doing and the planner will craft an empathetic reply, evidence-backed micro-actions, and a Life Quality Signal to help you track momentum.</p>
+      </div>
+    </div>
   </header>
   <main>
     <section class="card">

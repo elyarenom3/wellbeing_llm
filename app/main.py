@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from .models import UserContext, Conversation
 from .orchestration import Orchestrator
@@ -15,6 +16,11 @@ app = FastAPI(title="Wellbeing Planner API", version="0.1.0")
 
 # Single orchestrator instance
 _orch = Orchestrator(content_path=os.path.abspath(DATA_PATH), db_path=os.path.abspath(DB_PATH))
+
+# Static assets (logo, future frontend files)
+assets_path = os.path.join(FRONTEND_PATH, "assets")
+if os.path.isdir(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
 class PlanRequest(BaseModel):
     context: UserContext
