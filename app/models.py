@@ -20,7 +20,11 @@ class Conversation(BaseModel):
     messages: List[Message] = Field(..., description="Multi-turn history")
 
 class ReflectionSignals(BaseModel):
-    sentiment: float = Field(..., description="VADER compound score (-1..1)")
+    sentiment: float = Field(..., description="Raw sentiment score (-1..1)")
+    sentiment_confidence: float = Field(..., description="Confidence from sentiment model (0..1)")
+    sentiment_calibrated: float = Field(..., description="Calibrated sentiment score (-1..1)")
+    sentiment_model: str = Field(..., description="Name of the backend sentiment model")
+    reflection_score: float = Field(..., description="Composite wellbeing reflection score (0..1)")
     top_themes: List[str] = Field(..., description="Normalized themes inferred from the conversation")
     energy_level: Literal["low", "medium", "high"]
     summary: str
@@ -33,17 +37,39 @@ class ContentItem(BaseModel):
     body: str
     score: float = 0.0
 
+class ContentExplanation(BaseModel):
+    content_id: str
+    snippet: str
+    citation: str
+    score: float
+
+class CalendarBlock(BaseModel):
+    start_iso: str
+    end_iso: str
+    label: str
+    timezone: str
+
 class PlanItem(BaseModel):
     content_id: str
     title: str
     duration_minutes: int
     why_it_helps: str
     instructions: str
+    evidence_citation: Optional[str] = Field(default=None, description="Short citation identifier for provenance")
 
 class Plan(BaseModel):
     day: str
     items: List[PlanItem]
     caution: Optional[str] = None
+
+class LifeQualitySnapshot(BaseModel):
+    timestamp: str
+    score: float
+
+class LifeQualityReport(BaseModel):
+    score: float = Field(..., ge=0.0, le=100.0)
+    trend: Optional[str] = Field(default=None, description="Describes recent change e.g. 'up', 'down', 'steady'")
+    recent: List[LifeQualitySnapshot] = Field(default_factory=list)
 
 class PlanResponse(BaseModel):
     session_id: str
@@ -51,6 +77,10 @@ class PlanResponse(BaseModel):
     plan: Plan
     signals: ReflectionSignals
     candidates: List[ContentItem]
+    explanations: List[ContentExplanation]
+    calendar_blocks: List[CalendarBlock]
+    personalized_nudge: Optional[str] = None
+    life_quality: Optional[LifeQualityReport] = None
 
 class StepLog(BaseModel):
     step_name: str

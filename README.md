@@ -16,11 +16,14 @@ runs **offline** using a deterministic **RuleBasedLLM** fallback.
 /app
   models.py         # Pydantic models (UserContext, Plan, ReflectionSignals, etc.)
   reflection.py     # Sentiment + themes extraction (VADER + heuristics)
-  retrieval.py      # Simple retrieval over curated content (tag overlap + fuzzy match)
+  retrieval.py      # Embedding-based retrieval over curated content with explainers
   providers.py      # LLM abstraction: LiteLLM client + RuleBasedLLM fallback
   prompts.py        # Prompt templates for empathy + JSON plan
   validators.py     # Guardrails: safe & achievable plan checks
   orchestration.py  # Orchestrator that wires steps + logging
+  calendar_tools.py # Calendar block helper for plan execution windows
+  life_quality.py   # LQI-lite score computation + reporting helpers
+  privacy.py        # PII redaction, encryption helpers, retention utilities
   main.py           # FastAPI with /plan endpoint
 /data
   wellbeing_content.json  # Curated sample content (extendable)
@@ -33,14 +36,22 @@ README.md
 
 **Flow**
 
-1. **Reflection**: `reflection.analyze()` computes sentiment (VADER compound), themes (keyword mapping
+1. **Reflection**: `reflection.analyze()` computes sentiment (DistilBERT when available), themes (keyword mapping
    + context), and an energy estimate.
-2. **Retrieval**: ranks curated wellbeing content by theme overlap + fuzzy scoring (RapidFuzz).
+2. **Retrieval**: generates embeddings (Sentence-Transformers if available, TF‑IDF fallback) and
+   performs cosine similarity search over the wellbeing library. Each recommendation ships with an
+   *explainer* citing the most relevant passage.
 3. **Synthesis**: prompts an LLM to return *strict JSON* for the plan (LiteLLM model), with a robust
    fallback builder if JSON fails or no provider is configured.
-4. **Guardrails**: validates durations/safety; adds `caution` if needed.
-5. **Empathy**: prompts the LLM (or rule‑based copy) for a short, caring message.
-6. **Logging**: every step is timestamped into SQLite (`wellbeing_logs.sqlite3`).
+4. **Evidence layer**: ensures every plan item carries a mini-citation and one-line research-backed
+   “why”, enforcing provenance before validation.
+5. **Guardrails**: validates durations/safety/citations; caps LQI volatility if a previous point exists.
+6. **Calendar Blocks**: suggests execution windows aligned to the user’s timezone and availability.
+7. **Empathy & Nudges**: prompts the LLM (or rule‑based copy) for a caring message, and generates a
+   personalized nudge using rolling reflection scores + streaks stored in SQLite.
+8. **Life Quality Signal**: computes an LQI-lite score (0–100) that blends sentiment slope, stress/sleep
+   themes, and inferred action adherence; archives the score for plotting.
+9. **Privacy layer**: optional PII redaction, at-rest encryption, logging opt-out, and retention cleanup.
 
 > The design intentionally keeps each step small and testable, while exhibiting the “graph” idea
   (distinct nodes: reflection → retrieval → plan → validate → empathy). We can swap any node
@@ -81,6 +92,9 @@ Optional provider keys:
 **Environment paths**
 - `WB_DATA_PATH` — path to `wellbeing_content.json` (default: `./data/wellbeing_content.json`)
 - `WB_SQLITE_PATH` — path to SQLite log DB (default: `./wellbeing_logs.sqlite3`)
+- `PRIVACY_MODE` — enable privacy guardrails (`true` disables remote providers, redacts PII)
+- `PRIVACY_LOGGING_OPTOUT` — skip DB logging entirely when set to `true`
+- `WB_RETENTION_DAYS` — retention window for encrypted logs & life quality scores (default: 30)
 
 ## Run
 
@@ -90,6 +104,11 @@ Start the server (note the module path to **`app/main.py`**):
 ```bash
 uvicorn app.main:app --reload
 ```
+
+Once the server is running, open `http://127.0.0.1:8000/` to use the built-in frontend. The page lets you:
+- enter multi-turn context,
+- view empathetic responses, plan items, citations, calendar suggestions,
+- and visualize the Life Quality Signal sparkline without any external dependencies.
 
 **POST /plan** expects:
 - `context.user_id` (**required**)
@@ -127,6 +146,14 @@ curl -X POST http://127.0.0.1:8000/plan   -H 'Content-Type: application/json'   
 python run_cli.py   --available_minutes 12   --focus_area stress   --messages "Slept badly" "Lower back tight" "Have 10 minutes only"
 ```
 
+### View Metrics
+
+Fetch the LQI-lite line chart for a user:
+
+```bash
+curl "http://127.0.0.1:8000/metrics/life-quality?user_id=demo-user&limit=30"
+```
+
 ## Response (example)
 ```json
 {
@@ -150,6 +177,11 @@ python run_cli.py   --available_minutes 12   --focus_area stress   --messages "S
     "top_themes": ["stress"],
     "energy_level": "medium",
     "summary": "Sentiment 0.34. Themes: stress. Energy: medium."
+  },
+  "life_quality": {
+    "score": 72.4,
+    "trend": "steady",
+    "recent": [{"timestamp": "2024-05-06T00:00:00", "score": 70.2}, {"timestamp": "2024-05-07T00:00:00", "score": 72.4}]
   },
   "candidates": [
     { "id": "ritual-breathing", "score": 26.02, "...": "..." },
@@ -182,13 +214,28 @@ pytest -q
 
 The test runs the full flow with the offline fallback and asserts basic invariants.
 
-## Extensibility Ideas
+## New Extensibility Features (Implemented)
 
-- Replace retrieval with embeddings + vector DB; include “explainer” that cites content passages.
-- Add “streak” & “reflection score” in the DB to personalize nudges.
-- Integrate a calendar block tool for plan execution windows.
-- Add more themes (“loneliness”, “body image”, “burnout”) and map keywords from user text.
-- Swap the sentiment model (e.g., DistilBERT) and report confidence ± calibration.
+- **Embedding + vector retrieval**: curates candidates via cosine similarity and surfaces cited
+  explainers for transparency. Optional dependency: install `sentence-transformers` for
+  transformer-grade embeddings (falls back to lightweight bag-of-words).
+- **Personalized nudges**: SQLite now tracks user streaks and rolling reflection scores to tailor the
+  motivational message at the end of each run.
+- **Calendar blocks**: provides suggested execution windows (rounded to the next quarter hour) based
+  on the user’s timezone and available minutes.
+- **Expanded themes**: loneliness, body image, and burnout keyword maps enrich reflection signals and
+  downstream retrieval.
+- **DistilBERT sentiment swap**: the reflection step uses DistilBERT (when installed) with calibrated
+  confidence scores, and gracefully falls back to VADER/heuristics in offline mode.
+- **Life Quality Signal (LQI-lite)**: combines sentiment slope, theme load, and inferred adherence to
+  produce a 0–100 wellbeing pulse, with volatility-capped progression and a lightweight Plotly-ready chart.
+- **Evidence-backed plans**: every plan item carries a concise citation (e.g. `ritual-breathing:stress`)
+  and rationale pulled from the vector store explainers.
+- **Privacy layer**: regex redaction, optional logging opt-out, encrypted storage, key rotation, and
+  automatic retention cleanup when `PRIVACY_MODE=true`.
+
+> Optional packages: `sentence-transformers` and `transformers` + `torch` unlock higher-quality
+> embeddings and sentiment confidence. The system remains functional without them.
 
 ## Assumptions & Trade‑offs
 

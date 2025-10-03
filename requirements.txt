@@ -6,3 +6,4 @@ rapidfuzz>=3.9.0
 vaderSentiment>=3.3.2
 python-dotenv>=1.0.1
 orjson>=3.10.6
+numpy>=1.26.0

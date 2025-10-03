@@ -31,8 +31,9 @@ Return an object with:
   - content_id (string)
   - title (string)
   - duration_minutes (integer <= {available_minutes})
-  - why_it_helps (short, concrete reason, tailored to signals/themes)
+  - why_it_helps (short, concrete reason, include 1 evidence phrase)
   - instructions (1–3 sentences, actionable)
+  - evidence_citation (string, e.g., "content-id:tag")
 
 Only include items that fit the time budget and align with themes.
 Do not include any extra keys, comments, or trailing text.
